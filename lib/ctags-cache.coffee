@@ -1,5 +1,6 @@
 
 TagGenerator = require './tag-generator'
+CacheProvider = require './cache-provider'
 ctags = require 'ctags'
 fs = require "fs"
 path = require "path"
