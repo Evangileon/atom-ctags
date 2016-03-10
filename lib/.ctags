@@ -83,6 +83,10 @@
 --regex-perl=/^\=head2[ \t]+(.+)/-- \1/p,pod,Plain Old Documentation/
 --regex-perl=/^\=head[3-5][ \t]+(.+)/---- \1/p,pod,Plain Old Documentation/
 
+<<<<<<< HEAD
+=======
+--langmap=JavaScript:+.es6
+>>>>>>> 1cb782dc6c63f860363601c2fc587bcab3cb6657
 --regex-JavaScript=/(,|(;|^)[ \t]*(var|let|([A-Za-z_$][A-Za-z0-9_$.]*\.)*))[ \t]*([A-Za-z0-9_$]+)[ \t]*=[ \t]*function[ \t]*\(/\5/,function/
 --regex-JavaScript=/function[ \t]+([A-Za-z0-9_$]+)[ \t]*\([^)]*\)/\1/,function/
 --regex-JavaScript=/(,|^|\*\/)[ \t]*([A-Za-z_$][A-Za-z0-9_$]+)[ \t]*:[ \t]*function[ \t]*\(/\2/,function/
