@@ -4,6 +4,7 @@ CacheProvider = require './cache-provider'
 ctags = require 'ctags'
 fs = require "fs"
 path = require "path"
+wait = require "wait.for"
 
 getTagsFile = (directoryPath) ->
   tagsFile = path.join(directoryPath, ".tags")
@@ -14,12 +15,14 @@ module.exports =
   activate: () ->
     @cachedTags = {}
     @extraTags = {}
+    @isLargeTagFile = false
 
   deactivate: ->
     @cachedTags = null
 
   initTags: (paths, auto)->
     return if paths.length == 0
+    @isLargeTagFile = false
     @cachedTags = {}
     for p in paths
       tagsFile = getTagsFile(p)
@@ -58,19 +61,28 @@ module.exports =
 
   #options = { partialMatch: true, maxItems }
   findTags: (prefix, options) ->
+    if @isLargeTagFile
+      searchCache(prefix, callback)
+
     tags = []
-    return tags if @findOf(@cachedTags, tags, prefix, options)
-    return tags if @findOf(@extraTags, tags, prefix, options)
+    if @findOf(@cachedTags, tags, prefix, options)
+      return tags
+    if @findOf(@extraTags, tags, prefix, options)
+      return tags
 
     #TODO: prompt in editor
     console.warn("[atom-ctags:findTags] tags empty, did you RebuildTags or set extraTagFiles?") if tags.length == 0
     return tags
 
+  searchCache(source, tag, callback)->
+    return callback([]) unless @isLargeTagFile
+    @cacheProvider.get(tag, callback)
+
   findOf: (source, tags, prefix, options)->
     for key, value of source
       for tag in value
         if options?.partialMatch and tag.name.indexOf(prefix) == 0
-            tags.push tag
+          tags.push tag
         else if tag.name == prefix
           tags.push tag
         return true if options?.maxItems and tags.length == options.maxItems
