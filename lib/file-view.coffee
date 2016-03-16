@@ -88,13 +88,12 @@ class FileView extends SymbolsView
       console.error "[atom-ctags:goto] failed getCurSymbol"
       return
     # use async callback here
-    tags = @ctagsCache.findTags(symbol)
-
-    if tags.length is 1
-      @openTag(tags[0])
-    else
-      @setItems(tags)
-      @attach()
+    @ctagsCache.findTags symbol (tags) =>
+      if tags.length is 1
+        @openTag(tags[0])
+      else
+        @setItems(tags)
+        @attach()
 
   populate: (filePath) ->
     @list.empty()

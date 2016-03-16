@@ -60,21 +60,21 @@ module.exports =
       callback?()
 
   #options = { partialMatch: true, maxItems }
-  findTags: (prefix, options) ->
-    if @isLargeTagFile
-      searchCache(prefix, callback)
-
+  findTags: (prefix, callback, options) ->
     tags = []
     if @findOf(@cachedTags, tags, prefix, options)
-      return tags
+      return callback(tags)
     if @findOf(@extraTags, tags, prefix, options)
-      return tags
+      return callback(tags)
+
+    if @isLargeTagFile
+      @searchCache(prefix, callback)
 
     #TODO: prompt in editor
     console.warn("[atom-ctags:findTags] tags empty, did you RebuildTags or set extraTagFiles?") if tags.length == 0
     return tags
 
-  searchCache(source, tag, callback)->
+  searchCache(tag, callback)->
     return callback([]) unless @isLargeTagFile
     @cacheProvider.get(tag, callback)
 
