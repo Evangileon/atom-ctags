@@ -88,7 +88,7 @@ class FileView extends SymbolsView
       console.error "[atom-ctags:goto] failed getCurSymbol"
       return
     # use async callback here
-    @ctagsCache.findTags symbol (tags) =>
+    @ctagsCache.findTags(symbol).then (tags) =>
       if tags.length is 1
         @openTag(tags[0])
       else

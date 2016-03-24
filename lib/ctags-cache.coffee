@@ -4,7 +4,6 @@ CacheProvider = require './cache-provider'
 ctags = require 'ctags'
 fs = require "fs"
 path = require "path"
-wait = require "wait.for"
 
 getTagsFile = (directoryPath) ->
   tagsFile = path.join(directoryPath, ".tags")
@@ -44,13 +43,22 @@ module.exports =
       console.error 'atom-ctags: ', error
 
     stream.on 'data', (tags)->
+      # sorted tag make tags with same name are adjacent,
+      # for unsorted tags file, fetch array, then append and put into cache
+      sameTagName = []
+      tagName = ''
       for tag in tags
         continue unless tag.pattern
-        data = container[tag.file]
-        if not data
-          data = []
-          container[tag.file] = data
-        data.push tag
+        if sameTagName.length is 0
+          tagName = tag.name
+          sameTagName.push(tag)
+        else if tag.name == tagName
+          sameTagName.push(tag)
+        else
+          container.append(tagName, sameTagName)
+          tagName = tag.name
+          sameTagName = [tag]
+
     stream.on 'end', ()->
       console.log "[atom-ctags:readTags] #{p} cost: #{Date.now() - startTime}ms"
       callback?()
