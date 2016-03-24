@@ -6,18 +6,21 @@ class CacheProvider
   initialize: (file)->
     db = leveldb(file)
 
+  finalize: ()->
+    db?.close
+
   get: (key)->
     if db?
       return new Promise (resolve) => db.get(key, resolve)
 
   put: (key, value)->
-    unless db return
+    return unless db
     err_handler = (err)->
-      if (err) return console.log('Fail to put value!', err)
+      return console.log('Fail to put value!', err) if err
     db.put(key, value, err_handler)
 
   del: (key)->
-    unless db return
+    return unless db
     err_handler = (err)->
-      if (err) return console.log('Fail to delete value!', err)
+      return console.log('Fail to delete value!', err)  if err
     db.del(key, err_handler)

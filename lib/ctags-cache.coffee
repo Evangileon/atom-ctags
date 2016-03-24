@@ -13,30 +13,26 @@ getTagsFile = (directoryPath) ->
 matchOpt = {matchBase: true}
 module.exports =
   activate: () ->
-    @cachedTags = {}
-    @extraTags = {}
-    @isLargeTagFile = false
+    @cacheProvider = new CacheProvider()
+    @cacheProvider.initialize
 
   deactivate: ->
-    @cachedTags = null
+    @cacheProvider.finalize
 
   initTags: (paths, auto)->
     return if paths.length == 0
-    @isLargeTagFile = false
-    @cachedTags = {}
     for p in paths
       tagsFile = getTagsFile(p)
       if tagsFile
-        @readTags(tagsFile, @cachedTags)
+        @readTags(tagsFile, @cacheProvider)
       else
         @generateTags(p) if auto
 
   initExtraTags: (paths) ->
-    @extraTags = {}
     for p in paths
       p = p.trim()
       continue unless p
-      @readTags(p, @extraTags)
+      @readTags(p, @cacheProvider)
 
   readTags: (p, container, callback) ->
     console.log "[atom-ctags:readTags] #{p} start..."
@@ -60,23 +56,15 @@ module.exports =
       callback?()
 
   #options = { partialMatch: true, maxItems }
-  findTags: (prefix, callback, options) ->
-    tags = []
-    if @findOf(@cachedTags, tags, prefix, options)
-      return callback(tags)
-    if @findOf(@extraTags, tags, prefix, options)
-      return callback(tags)
-
-    if @isLargeTagFile
-      @searchCache(prefix, callback)
+  findTags: (prefix, options) ->
+    @searchCache(prefix, options)
 
     #TODO: prompt in editor
-    console.warn("[atom-ctags:findTags] tags empty, did you RebuildTags or set extraTagFiles?") if tags.length == 0
-    return tags
+    #console.warn("[atom-ctags:findTags] tags empty, did you RebuildTags or set extraTagFiles?") if tags.length == 0
+    #return tags
 
-  searchCache(tag, callback)->
-    return callback([]) unless @isLargeTagFile
-    @cacheProvider.get(tag, callback)
+  searchCache: (tag, options)->
+      @cacheProvider.get(tag)
 
   findOf: (source, tags, prefix, options)->
     for key, value of source
@@ -89,8 +77,6 @@ module.exports =
     return false
 
   generateTags:(p, isAppend, callback) ->
-    delete @cachedTags[p]
-
     startTime = Date.now()
     console.log "[atom-ctags:rebuild] start @#{p}@ tags..."
 
